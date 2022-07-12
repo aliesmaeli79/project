@@ -27,17 +27,15 @@ def elim():
        result.append( i.replace("\n",""))
     return result
 
-dict = {}
 
 def read_document():
     number_dic = os.listdir("document")
     stop_words()
     normal_prefix()
-    print(list_normal_prefix)
     for doc in range(0, len(number_dic)):
         tokeniz(doc)
-    print(dict)
 
+dict = {}
 def tokeniz(doc):
     list_elim = elim()
     file = open(f"document/{doc}.txt", encoding="utf8")
@@ -63,17 +61,16 @@ def tokeniz(doc):
 
 
     my_stemmer = FindStems()
-    tokens_without_prefix = [
+    tokens_without_suffix = [
        my_stemmer.convert_to_stem(word) for word in tokens_without_sw
     ]
 
-    # tokens_normal = []
-    # for item in list_normal_prefix:
-    #     for token in tokens_without_prefix:
-    #         if  token.find(item)!=-1:
-    #             token.replace(item,"")
-    #         else:
-    #             tokens_normal.append(token)
+    tokens_without_prefix=[]
+    for token in tokens_without_suffix:
+        for item in list_normal_prefix:
+            if  token.startswith(item):
+                token = token.replace(item,"")
+        tokens_without_prefix.append(token)
 
     for word in tokens_without_prefix:
         if word in dict:
@@ -123,41 +120,46 @@ def OR(x,y):
 
     return list1
 
-if __name__ == '__main__':
-    start = default_timer()
-    read_document()
-    end = default_timer()
-    print(end-start)
-    # if(exists("file_project/tokeniz.txt")==False):
-    #     read_document()
-    #     with open('file_project/tokeniz.txt', 'w') as file:
-    #         file.write(json.dumps(dict))
-    # elif(exists("file_project/tokeniz.txt")==True):
-    #     file_token = open("file_project/tokeniz.txt","r",encoding="utf8")
-    #     dict1 = file_token.read()
-    #     print(dict1)
-    while (1):
-        query = input("Enter query :")
-        if (query.find("&")!=-1):
-            try:
-                token1 = query[0:query.find("&") - 1]
-                token2 = query[query.find("&") + 2:]
-                list_id1 = dict[token1]
-                list_id2 = dict[token2]
-                print(AND(list_id1, list_id2))
-            except:
-                print("سند مورد نظر یافت نشد")
-        elif(query.find("|")!=-1):
-            try:
-                token1 = query[0:query.find("|") - 1]
-                token2 = query[query.find("|") + 2:]
-                list_id1 = dict[token1]
-                list_id2 = dict[token2]
-                print(OR(list_id1, list_id2))
-            except:
-                print("سند مورد نظر یافت نشد")
-        else:
-            try:
-                print(dict[query])
-            except:
-                print("سند مورد نظر یافت نشد")
+
+
+def write_read():
+    if(exists("file_project/tokeniz.txt")==False):
+        read_document()
+        with open('file_project/tokeniz.txt', 'w' , encoding="unicode_escape") as file:
+            file.write(json.dumps(dict))
+        dict1 = dict
+
+    elif(exists("file_project/tokeniz.txt")==True):
+        with open("file_project/tokeniz.txt","r",encoding="unicode_escape") as file :
+            dict1 = json.load(file)
+    print(dict1)
+    return dict1
+
+
+def search(query):
+    dict = write_read()
+    if (query.find("&") != -1):
+        try:
+            token1 = query[0:query.find("&") - 1]
+            token2 = query[query.find("&") + 2:]
+            list_id1 = dict[token1]
+            list_id2 = dict[token2]
+            return (AND(list_id1, list_id2))
+        except:
+            return 0
+    elif (query.find("|") != -1):
+        try:
+            token1 = query[0:query.find("|") - 1]
+            token2 = query[query.find("|") + 2:]
+            list_id1 = dict[token1]
+            list_id2 = dict[token2]
+            return (OR(list_id1, list_id2))
+        except:
+            return 0
+    else:
+        try:
+            return dict[query]
+        except:
+            return 0
+
+
